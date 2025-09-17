@@ -1,5 +1,5 @@
 # Web Bluetooth - Serial Port Profile (SPP) Example
-[![Version Badge](https://img.shields.io/badge/v1.0.0-green)](https://github.com/SiliconLabsSoftware/web-bluetooth-spp-application/releases)
+[![Version Badge](https://img.shields.io/badge/v1.0.0-green)](https://bridgethings.com)
 
 ## Overview
 

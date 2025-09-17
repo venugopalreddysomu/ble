@@ -8,8 +8,8 @@ const Footer: FC<{}> = () => {
 
   return (
     <Group justify="space-between" h="100%" px={15}>
-      <Text visibleFrom="md">© {new Date().getFullYear()} Silicon Labs. All rights reserved.</Text>
-      <Text hiddenFrom="md">© {new Date().getFullYear()} Silicon Labs</Text>
+      <Text visibleFrom="md">© {new Date().getFullYear()} BridgeThings. All rights reserved.</Text>
+      <Text hiddenFrom="md">© {new Date().getFullYear()} BridgeThings</Text>
       <Group justify="flex-end" gap="sm">
         <Anchor
           target="_blank"
@@ -21,7 +21,7 @@ const Footer: FC<{}> = () => {
         </Anchor>
         <Divider orientation="vertical" />
         <Anchor target="_blank" underline="hover" c="black" href={github} display="flex">
-          <Image src={GithubLogo} alt="Github" h={20} w={20}/>
+          <Image src={GithubLogo} alt="Github" h={20} w={100}/>
         </Anchor>
       </Group>
     </Group>
