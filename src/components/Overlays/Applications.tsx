@@ -15,7 +15,7 @@ import {
 
 
 const Applications: FC<{}> = () => {
-
+	return null;
 };
 
 export default Applications;

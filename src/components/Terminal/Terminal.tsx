@@ -73,6 +73,93 @@ const Terminal: FC<TerminalProps> = () => {
     }
   };
 
+  const sendSetTimeCommand = async () => {
+    // Get the standard Unix timestamp (seconds since epoch)
+    const currentTimestamp = Math.floor(new Date().getTime() / 1000);
+
+    // Define the IST offset in seconds (5 hours * 3600) + (30 minutes * 60)
+    const istOffsetInSeconds = 19800;
+
+    // Create the new timestamp with the offset added for your device
+    const adjustedTimestamp = currentTimestamp + istOffsetInSeconds;
+
+    // Construct the command string with the new adjusted timestamp
+    const setTimeCommand = `set_datetime ${adjustedTimestamp}`;
+
+    // The rest of the sending logic remains the same
+    const ltMap: Record<string, string> = {
+      None: '',
+      'CR-LF': '\r\n',
+      CR: '\r',
+      LF: '\n',
+    };
+
+    let data = setTimeCommand;
+    if (lineTerminator !== null && lineTerminator !== 'None') {
+      data += ltMap[lineTerminator];
+    }
+
+    if (echoing) {
+      append(
+        <span key={content.length} style={{ color: '#0080FF' }}>
+          {data}
+        </span>
+      );
+    }
+    
+    const chunks = sliceStringIntoChunks(data);
+
+    try {
+      for (let i = 0; i < chunks.length; i++) {
+        await characteristic.characteristic?.writeValueWithoutResponse(
+          stringToUint8Array(chunks[i])
+        );
+      }
+    } catch (error) {
+      notifications.show({ message: 'Failed to send data to the connected device.', color: 'red' });
+    }
+  };
+
+  // Find the existing 'send' function and add this function below it
+  const getTimeCommand = async () => {
+    // The specific text you want to send
+    const timeCommand = 'get_datetime';
+
+    // This logic is copied from the 'prepareData' function to ensure
+    // your command is formatted and echoed correctly.
+    const ltMap: Record<string, string> = {
+      None: '',
+      'CR-LF': '\r\n',
+      CR: '\r',
+      LF: '\n',
+    };
+
+    let data = timeCommand;
+    if (lineTerminator !== null && lineTerminator !== 'None') {
+      data += ltMap[lineTerminator];
+    }
+
+    if (echoing) {
+      append(
+        <span key={content.length} style={{ color: '#0080FF' }}>
+          {data}
+        </span>
+      );
+    }
+    
+    const chunks = sliceStringIntoChunks(data);
+
+    // This is the logic that sends the data over Bluetooth
+    try {
+      for (let i = 0; i < chunks.length; i++) {
+        await characteristic.characteristic?.writeValueWithoutResponse(
+          stringToUint8Array(chunks[i])
+        );
+      }
+    } catch (error) {
+      notifications.show({ message: 'Failed to send data to the connected device.', color: 'red' });
+    }
+  };
   const prepareData = (): string[] => {
     const ltMap: Record<string, string> = {
       None: '',
@@ -187,9 +274,18 @@ const Terminal: FC<TerminalProps> = () => {
                 onChange={setLineTerminator}
               />
             </Grid.Col>
-            <Grid.Col span={{ xs: 12, md: 'content' }}>
+            <Grid.Col span={{ xs: 12, md: 'content' }} style={{ display: 'flex', gap: '10px' }}>
+              {/* This is the original Send button */}
               <Button variant="outline" onClick={send}>
                 Send
+              </Button>
+              {/* This is YOUR new button */}
+              <Button variant="outline" color="cyan" onClick={getTimeCommand}>
+                Get Device Time
+              </Button>
+              {/* This is YOUR new button */}
+              <Button variant="outline" color="cyan" onClick={sendSetTimeCommand}>
+                Send Time
               </Button>
             </Grid.Col>
           </Grid>
