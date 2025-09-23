@@ -14,20 +14,27 @@ export function LiveData() {
     current_time: new Date().toISOString(),
     errors: 'None'
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const { sendCommand } = useBluetoothService();
 
   const handleReadLive = async () => {
-    const response = await sendCommand(CommandPrefix.GET_LIVE);
-    if (response) {
-      setData(response.data as unknown as LiveDataType);
+    try {
+      setIsLoading(true);
+      const response = await sendCommand(CommandPrefix.GET_LIVE);
+      if (response && response.data) {
+        setData(response.data as unknown as LiveDataType);
+      }
+    } catch (error) {
+      console.error('Error reading live data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Auto update every 5 seconds
+  // Initial data fetch when component mounts
   useEffect(() => {
-    const interval = setInterval(handleReadLive, 5000);
-    return () => clearInterval(interval);
+    handleReadLive();
   }, []);
 
   const DataItem = ({ label, value, unit }: { label: string; value: number; unit: string }) => (
@@ -50,7 +57,7 @@ export function LiveData() {
               bottom: 0,
               left: 0,
               right: 0,
-              height: `${(data.level_meters / 150) * 100}%`,
+              height: `${((data?.level_meters || 0) / 150) * 100}%`,
               background: 'linear-gradient(0deg, #228be6 0%, #74c0fc 100%)',
               transition: 'height 0.5s ease-in-out'
             }}
@@ -66,7 +73,7 @@ export function LiveData() {
               fontWeight: 700
             }}
           >
-            {data.level_meters.toFixed(1)}m
+            {(data?.level_meters || 0).toFixed(1)}m
           </Text>
         </div>
       </Paper>
@@ -96,8 +103,10 @@ export function LiveData() {
         size="lg" 
         onClick={handleReadLive} 
         mt="md"
+        loading={isLoading}
+        disabled={isLoading}
       >
-        Refresh Data
+        {isLoading ? 'Refreshing...' : 'Refresh Data'}
       </Button>
     </Box>
   );

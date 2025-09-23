@@ -14,18 +14,46 @@ export function NetworkSettings() {
     enable_ipv6: false,
     onomondo_sim: false
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const { sendCommand } = useBluetoothService();
 
   const handleGetData = async () => {
-    const response = await sendCommand(CommandPrefix.GET_NETWORK);
-    if (response) {
-      setData(response.data as unknown as NetworkSettingsType);
+    try {
+      setIsLoading(true);
+      const response = await sendCommand(CommandPrefix.GET_NETWORK);
+      if (response && response.data) {
+        const newData = response.data as unknown as NetworkSettingsType;
+        // Validate the received data
+        if (typeof newData === 'object' && 
+            'apn' in newData && 
+            'mobile_number' in newData && 
+            'auto_mode' in newData && 
+            'force_4g_only' in newData && 
+            'data_logging_only' in newData && 
+            'enable_ipv6' in newData && 
+            'onomondo_sim' in newData) {
+          setData(newData);
+        } else {
+          console.error('Received invalid data format');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching network data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSetData = async () => {
-    await sendCommand(CommandPrefix.SET_NETWORK, data);
+    try {
+      setIsLoading(true);
+      await sendCommand(CommandPrefix.SET_NETWORK, data);
+    } catch (error) {
+      console.error('Error setting network data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,8 +96,22 @@ export function NetworkSettings() {
         />
         
         <Group style={{ justifyContent: 'space-between', marginTop: '2rem' }}>
-          <Button onClick={handleGetData} variant="filled">Get Data</Button>
-          <Button onClick={handleSetData} variant="filled">Set Data</Button>
+          <Button 
+            onClick={handleGetData} 
+            variant="filled"
+            loading={isLoading}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Getting Data...' : 'Get Data'}
+          </Button>
+          <Button 
+            onClick={handleSetData} 
+            variant="filled"
+            loading={isLoading}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Setting Data...' : 'Set Data'}
+          </Button>
         </Group>
       </Stack>
     </Paper>

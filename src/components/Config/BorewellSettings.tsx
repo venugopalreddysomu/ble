@@ -15,18 +15,47 @@ export function BorewellSettings() {
     sending_interval: 1440,
     well_id: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const { sendCommand } = useBluetoothService();
 
   const handleGetData = async () => {
-    const response = await sendCommand(CommandPrefix.GET_BOREWELL);
-    if (response) {
-      setData(response.data as unknown as BorewellSettingsType);
+    try {
+      setIsLoading(true);
+      const response = await sendCommand(CommandPrefix.GET_BOREWELL);
+      if (response && response.data) {
+        const newData = response.data as unknown as BorewellSettingsType;
+        // Validate the received data
+        if (typeof newData === 'object' && 
+            'address' in newData && 
+            'offset' in newData && 
+            'reference_level' in newData && 
+            'reference_depth' in newData && 
+            'barometric_pressure' in newData && 
+            'reading_interval' in newData && 
+            'sending_interval' in newData && 
+            'well_id' in newData) {
+          setData(newData);
+        } else {
+          console.error('Received invalid data format');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching borewell data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSetData = async () => {
-    await sendCommand(CommandPrefix.SET_BOREWELL, data);
+    try {
+      setIsLoading(true);
+      await sendCommand(CommandPrefix.SET_BOREWELL, data);
+    } catch (error) {
+      console.error('Error setting borewell data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -85,8 +114,22 @@ export function BorewellSettings() {
       />
       
       <Group style={{ justifyContent: 'space-between', marginTop: '2rem' }}>
-        <Button onClick={handleGetData} variant="filled">Get Data</Button>
-        <Button onClick={handleSetData} variant="filled">Set Data</Button>
+        <Button 
+          onClick={handleGetData} 
+          variant="filled" 
+          loading={isLoading}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Getting Data...' : 'Get Data'}
+        </Button>
+        <Button 
+          onClick={handleSetData} 
+          variant="filled"
+          loading={isLoading}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Setting Data...' : 'Set Data'}
+        </Button>
       </Group>
     </Paper>
   );

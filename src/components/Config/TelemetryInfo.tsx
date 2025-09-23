@@ -12,18 +12,44 @@ export function TelemetryInfo() {
     sensor_id: '',
     current_time: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const { sendCommand } = useBluetoothService();
 
   const handleGetData = async () => {
-    const response = await sendCommand(CommandPrefix.GET_TELEMETRY);
-    if (response) {
-      setData(response.data as unknown as TelemetryInfoType);
+    try {
+      setIsLoading(true);
+      const response = await sendCommand(CommandPrefix.GET_TELEMETRY);
+      if (response && response.data) {
+        const newData = response.data as unknown as TelemetryInfoType;
+        // Validate the received data
+        if (typeof newData === 'object' && 
+            'project' in newData && 
+            'unique_id' in newData && 
+            'telemetry_id' in newData && 
+            'sensor_id' in newData && 
+            'current_time' in newData) {
+          setData(newData);
+        } else {
+          console.error('Received invalid data format');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching telemetry data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSetData = async () => {
-    await sendCommand(CommandPrefix.SET_TELEMETRY, data);
+    try {
+      setIsLoading(true);
+      await sendCommand(CommandPrefix.SET_TELEMETRY, data);
+    } catch (error) {
+      console.error('Error setting telemetry data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,8 +80,22 @@ export function TelemetryInfo() {
       />
       
       <Group style={{ justifyContent: 'space-between', marginTop: '2rem' }}>
-        <Button onClick={handleGetData} variant="filled">Get Data</Button>
-        <Button onClick={handleSetData} variant="filled">Set Data</Button>
+        <Button 
+          onClick={handleGetData} 
+          variant="filled"
+          loading={isLoading}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Getting Data...' : 'Get Data'}
+        </Button>
+        <Button 
+          onClick={handleSetData} 
+          variant="filled"
+          loading={isLoading}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Setting Data...' : 'Set Data'}
+        </Button>
       </Group>
     </Paper>
   );

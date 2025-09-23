@@ -50,14 +50,14 @@ const BluetoothProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     }
   }, [isFailed]);
 
-  const connect = async () => {
+  const connect = async (services: string[]) => {
     setIsFailed(false);
     setIsConnecting(true);
 
     try {
       const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [SPP_SERVICE_UUID]
+        acceptAllDevices: false,
+        filters: [{ services: services as BluetoothServiceUUID[] }],
       });
 
       console.log('Selected device:', device.name);
