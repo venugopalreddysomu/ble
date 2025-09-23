@@ -3,6 +3,7 @@ import { createContext } from 'react';
 export interface BluetoothContextType {
   isConnected: boolean;
   device: BluetoothDevice | null;
+  characteristic: BluetoothRemoteGATTCharacteristic | null;
   connect: (services: string[]) => void;
   disconnect: () => void;
   isSupported: boolean;

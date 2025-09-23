@@ -1,114 +1,101 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import useBluetooth from './useBluetooth';
+import { CommandPrefix } from '../utils/bluetoothCommands';
 
-interface UseBluetoothCharacteristicProps {
-  uuid: string;
-  onValueChanged?: (value: DataView | undefined) => void;
+interface BluetoothResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 
-interface UseBluetoothServiceProps {
-  uuid: string;
-}
+const useBluetoothService = () => {
+  const { characteristic } = useBluetooth();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-const useBluetoothService = (props: UseBluetoothServiceProps) => {
-  const bluetooth = useBluetooth();
-  const [serviceData, setServiceData] = useState<UseBluetoothServiceProps>(props);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const [service, setService] = useState<BluetoothRemoteGATTService | null>(null);
-
-  useEffect(() => {
-    onGetService();
-  }, [bluetooth.isConnected]);
-
-  const onGetService = () => {
-    if (bluetooth.isConnected) {
-      getService();
-    } else {
-      setService(null);
+  const sendCommand = async <T = any>(
+    prefix: CommandPrefix, 
+    data?: object
+  ): Promise<BluetoothResponse<T>> => {
+    if (!characteristic) {
+      return {
+        success: false,
+        error: 'Bluetooth not connected'
+      };
     }
-  };
 
-  const getService = async () => {
-    setLoading(true);
     try {
-      const ser = await bluetooth.device?.gatt?.getPrimaryService(serviceData.uuid);
-      if (ser) {
-        setService(ser);
+      setIsProcessing(true);
+      const command = data 
+        ? `${prefix}:${JSON.stringify(data)}\n`
+        : `${prefix}\n`;
+      
+      const encoder = new TextEncoder();
+      const chunks = sliceStringIntoChunks(command, 20);
+      
+      for (const chunk of chunks) {
+        await characteristic.writeValue(encoder.encode(chunk));
       }
+
+      // Wait for response
+      const result = await new Promise<BluetoothResponse<T>>((resolve) => {
+        const handleResponse = (event: Event) => {
+          const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
+          if (!value) return;
+
+          const decoder = new TextDecoder();
+          const response = decoder.decode(value);
+          
+          try {
+            const [responsePrefix, jsonData] = response.split(':');
+            if (responsePrefix === prefix) {
+              characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
+              resolve({
+                success: true,
+                data: JSON.parse(jsonData)
+              });
+            }
+          } catch (error) {
+            console.error('Error parsing response:', error);
+            resolve({
+              success: false,
+              error: 'Failed to parse response'
+            });
+          }
+        };
+
+        characteristic.addEventListener('characteristicvaluechanged', handleResponse);
+        
+        // Set timeout for response
+        setTimeout(() => {
+          characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
+          resolve({
+            success: false,
+            error: 'Response timeout'
+          });
+        }, 5000);
+      });
+
+      return result;
     } catch (error) {
-      setService(null);
+      console.error('Error sending command:', error);
+      return {
+        success: false,
+        error: 'Failed to send command'
+      };
+    } finally {
+      setIsProcessing(false);
     }
-    setLoading(false);
   };
 
-  const reloadService = (value: UseBluetoothServiceProps) => setServiceData(value);
-
-  const useBluetoothCharacteristic = (props: UseBluetoothCharacteristicProps) => {
-    const [characteristic, setCharacteristic] = useState<BluetoothRemoteGATTCharacteristic | null>(
-      null
-    );
-    const characteristicRef = useRef(characteristic);
-
-    useEffect(() => {
-      return () => removeCharacteristic();
-    }, []);
-
-    useEffect(() => {
-      if (service) {
-        addCharacteristic();
-      }
-    }, [service]);
-
-    useEffect(() => {
-      characteristicRef.current = characteristic;
-    }, [characteristic]);
-
-    const addCharacteristic = async () => {
-      try {
-        const char = await service?.getCharacteristic(props.uuid);
-        if (props.onValueChanged) {
-          char
-            ?.startNotifications()
-            .then((_) =>
-              char.addEventListener('characteristicvaluechanged', onCharacteristicValueChanged)
-            )
-            .catch((_e) => {});
-        }
-        setCharacteristic(char ?? null);
-      } catch (err) {
-        err;
-      }
-    };
-
-    const removeCharacteristic = () => {
-      if (props.onValueChanged && characteristicRef.current && bluetooth.isConnected) {
-        try {
-          characteristicRef.current
-            .stopNotifications()
-            .then((_) => {
-              characteristicRef.current!.removeEventListener(
-                'characteristicvaluechanged',
-                onCharacteristicValueChanged
-              );
-            })
-            .catch((_e) => {});
-        } catch (err) {
-          err;
-        }
-      }
-    };
-
-    const onCharacteristicValueChanged = useCallback((ev: Event) => {
-      if (props.onValueChanged) {
-        props.onValueChanged((ev?.target as BluetoothRemoteGATTCharacteristic).value);
-      }
-    }, []);
-
-    return { characteristic } as const;
-  };
-
-  return { loading, reloadService, service, useBluetoothCharacteristic } as const;
+  return { sendCommand, isProcessing };
 };
+
+function sliceStringIntoChunks(str: string, chunkSize: number): string[] {
+  const chunks = [];
+  for (let i = 0; i < str.length; i += chunkSize) {
+    chunks.push(str.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
 
 export default useBluetoothService;
