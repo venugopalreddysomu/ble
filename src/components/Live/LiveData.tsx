@@ -20,7 +20,7 @@ export function LiveData() {
   const handleReadLive = async () => {
     const response = await sendCommand(CommandPrefix.GET_LIVE);
     if (response) {
-      setData(response as LiveDataType);
+      setData(response.data as unknown as LiveDataType);
     }
   };
 
@@ -34,13 +34,13 @@ export function LiveData() {
     <Grid.Col span={6}>
       <Paper p="md" withBorder>
         <Text size="sm" color="dimmed">{label}</Text>
-        <Text size="xl" weight={700}>{value.toFixed(2)} {unit}</Text>
+        <Text size="xl" style={{ fontWeight: 700 }}>{value.toFixed(2)} {unit}</Text>
       </Paper>
     </Grid.Col>
   );
 
   return (
-    <Box sx={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
+    <Box style={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
       {/* Water Level Visualization */}
       <Paper p="md" mb="md" withBorder>
         <div style={{ height: 300, position: 'relative', background: '#f8f9fa' }}>
@@ -57,13 +57,13 @@ export function LiveData() {
           />
           <Text 
             size="xl" 
-            weight={700} 
             style={{ 
               position: 'absolute', 
               top: '50%', 
               left: '50%', 
               transform: 'translate(-50%, -50%)',
-              color: '#495057'
+              color: '#495057',
+              fontWeight: 700
             }}
           >
             {data.level_meters.toFixed(1)}m

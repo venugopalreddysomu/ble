@@ -18,7 +18,7 @@ export function TelemetryInfo() {
   const handleGetData = async () => {
     const response = await sendCommand(CommandPrefix.GET_TELEMETRY);
     if (response) {
-      setData(response as TelemetryInfoType);
+      setData(response.data as unknown as TelemetryInfoType);
     }
   };
 
@@ -53,7 +53,7 @@ export function TelemetryInfo() {
         mb="sm"
       />
       
-      <Group position="apart" mt="xl">
+      <Group style={{ justifyContent: 'space-between', marginTop: '2rem' }}>
         <Button onClick={handleGetData} variant="filled">Get Data</Button>
         <Button onClick={handleSetData} variant="filled">Set Data</Button>
       </Group>

@@ -21,7 +21,7 @@ export function BorewellSettings() {
   const handleGetData = async () => {
     const response = await sendCommand(CommandPrefix.GET_BOREWELL);
     if (response) {
-      setData(response as BorewellSettingsType);
+      setData(response.data as unknown as BorewellSettingsType);
     }
   };
 
@@ -34,47 +34,47 @@ export function BorewellSettings() {
       <NumberInput
         label="Address"
         value={data.address}
-        onChange={(value) => setData({ ...data, address: value || 0 })}
+        onChange={(value) => setData({ ...data, address: typeof value === 'number' ? value : 0 })}
         mb="sm"
       />
       <NumberInput
         label="Offset"
         value={data.offset}
-        onChange={(value) => setData({ ...data, offset: value || 0 })}
-        precision={3}
+        onChange={(value) => setData({ ...data, offset: typeof value === 'number' ? value : 0 })}
+        step={0.001}
         mb="sm"
       />
       <NumberInput
         label="Reference Level"
         value={data.reference_level}
-        onChange={(value) => setData({ ...data, reference_level: value || 0 })}
-        precision={2}
+        onChange={(value) => setData({ ...data, reference_level: typeof value === 'number' ? value : 0 })}
+        step={0.01}
         mb="sm"
       />
       <NumberInput
         label="Reference Depth"
         value={data.reference_depth}
-        onChange={(value) => setData({ ...data, reference_depth: value || 0 })}
-        precision={2}
+        onChange={(value) => setData({ ...data, reference_depth: typeof value === 'number' ? value : 0 })}
+        step={0.01}
         mb="sm"
       />
       <NumberInput
         label="Barometric Pressure"
         value={data.barometric_pressure}
-        onChange={(value) => setData({ ...data, barometric_pressure: value || 0 })}
-        precision={2}
+        onChange={(value) => setData({ ...data, barometric_pressure: typeof value === 'number' ? value : 0 })}
+        step={0.01}
         mb="sm"
       />
       <NumberInput
         label="Reading Interval"
         value={data.reading_interval}
-        onChange={(value) => setData({ ...data, reading_interval: value || 0 })}
+        onChange={(value) => setData({ ...data, reading_interval: typeof value === 'number' ? value : 0 })}
         mb="sm"
       />
       <NumberInput
         label="Sending Interval"
         value={data.sending_interval}
-        onChange={(value) => setData({ ...data, sending_interval: value || 0 })}
+        onChange={(value) => setData({ ...data, sending_interval: typeof value === 'number' ? value : 0 })}
         mb="sm"
       />
       <TextInput
@@ -84,7 +84,7 @@ export function BorewellSettings() {
         mb="sm"
       />
       
-      <Group position="apart" mt="xl">
+      <Group style={{ justifyContent: 'space-between', marginTop: '2rem' }}>
         <Button onClick={handleGetData} variant="filled">Get Data</Button>
         <Button onClick={handleSetData} variant="filled">Set Data</Button>
       </Group>

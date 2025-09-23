@@ -20,7 +20,7 @@ export function NetworkSettings() {
   const handleGetData = async () => {
     const response = await sendCommand(CommandPrefix.GET_NETWORK);
     if (response) {
-      setData(response as NetworkSettingsType);
+      setData(response.data as unknown as NetworkSettingsType);
     }
   };
 
@@ -30,7 +30,7 @@ export function NetworkSettings() {
 
   return (
     <Paper p="md">
-      <Stack spacing="md">
+      <Stack>
         <TextInput
           label="APN"
           value={data.apn}
@@ -67,7 +67,7 @@ export function NetworkSettings() {
           onChange={(e) => setData({ ...data, onomondo_sim: e.target.checked })}
         />
         
-        <Group position="apart" mt="xl">
+        <Group style={{ justifyContent: 'space-between', marginTop: '2rem' }}>
           <Button onClick={handleGetData} variant="filled">Get Data</Button>
           <Button onClick={handleSetData} variant="filled">Set Data</Button>
         </Group>

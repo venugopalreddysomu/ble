@@ -5,7 +5,7 @@ import { NetworkSettings } from './NetworkSettings';
 
 export function ConfigTabs() {
   return (
-    <Box sx={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
+    <Box style={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
       <Paper shadow="sm" p="md">
         <Tabs defaultValue="telemetry">
           <Tabs.List grow>
