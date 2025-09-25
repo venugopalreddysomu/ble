@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import useBluetooth from './useBluetooth';
 import { CommandPrefix } from '../utils/bluetoothCommands';
+import sliceStringIntoChunks from '../utils/sliceStringIntoChunks';
 
 interface BluetoothResponse<T = any> {
   success: boolean;
@@ -26,7 +27,7 @@ const useBluetoothService = () => {
     try {
       setIsProcessing(true);
       const command = data 
-        ? `${prefix}:${JSON.stringify(data)}\n`
+        ? `${prefix} ${JSON.stringify(data)}\n`
         : `${prefix}\n`;
       
       const encoder = new TextEncoder();
@@ -46,16 +47,36 @@ const useBluetoothService = () => {
           const response = decoder.decode(value);
           
           try {
-            const [responsePrefix, jsonData] = response.split(':');
-            if (responsePrefix === prefix) {
+            // Handle different response formats
+            if (response.includes('OK')) {
               characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
               resolve({
                 success: true,
-                data: JSON.parse(jsonData)
+                data: { status: 'success', message: 'Command executed successfully' } as T
               });
+              return;
             }
+            
+            // Try to parse as JSON (for read commands)
+            const jsonMatch = response.match(/\{.*\}/);
+            if (jsonMatch) {
+              characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
+              resolve({
+                success: true,
+                data: JSON.parse(jsonMatch[0])
+              });
+              return;
+            }
+
+            // Handle plain text responses
+            characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
+            resolve({
+              success: true,
+              data: response as T
+            });
           } catch (error) {
             console.error('Error parsing response:', error);
+            characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
             resolve({
               success: false,
               error: 'Failed to parse response'
@@ -89,13 +110,5 @@ const useBluetoothService = () => {
 
   return { sendCommand, isProcessing };
 };
-
-function sliceStringIntoChunks(str: string, chunkSize: number): string[] {
-  const chunks = [];
-  for (let i = 0; i < str.length; i += chunkSize) {
-    chunks.push(str.slice(i, i + chunkSize));
-  }
-  return chunks;
-}
 
 export default useBluetoothService;

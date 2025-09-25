@@ -1,11 +1,13 @@
+import sliceStringIntoChunks from './sliceStringIntoChunks';
+
 export enum CommandPrefix {
-  GET_TELEMETRY = "CMD:GET_TELEMETRY",
-  SET_TELEMETRY = "CMD:SET_TELEMETRY",
-  GET_BOREWELL = "CMD:GET_BOREWELL",
-  SET_BOREWELL = "CMD:SET_BOREWELL",
-  GET_NETWORK = "CMD:GET_NETWORK",
-  SET_NETWORK = "CMD:SET_NETWORK",
-  GET_LIVE = "CMD:GET_LIVE",
+  GET_TELEMETRY = "readConfig1",
+  SET_TELEMETRY = "writeConfig1",
+  GET_BOREWELL = "readConfig2",
+  SET_BOREWELL = "writeConfig2",
+  GET_NETWORK = "readConfig3",
+  SET_NETWORK = "writeConfig3",
+  GET_LIVE = "readLiveData",
 }
 
 export const sendBluetoothCommand = async (
@@ -14,7 +16,7 @@ export const sendBluetoothCommand = async (
   data?: object
 ) => {
   const command = data 
-    ? `${prefix}:${JSON.stringify(data)}\n`
+    ? `${prefix} ${JSON.stringify(data)}\n`
     : `${prefix}\n`;
   
   const encoder = new TextEncoder();
@@ -24,11 +26,3 @@ export const sendBluetoothCommand = async (
     await characteristic.writeValue(encoder.encode(chunk));
   }
 };
-
-function sliceStringIntoChunks(str: string, chunkSize: number): string[] {
-  const chunks = [];
-  for (let i = 0; i < str.length; i += chunkSize) {
-    chunks.push(str.slice(i, i + chunkSize));
-  }
-  return chunks;
-}

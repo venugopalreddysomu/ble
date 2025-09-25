@@ -1,38 +1,38 @@
 export interface TelemetryInfoType {
-  project: string;
-  unique_id: string;
-  telemetry_id: string;
-  sensor_id: string;
-  current_time: string;
+  p: string;           // project
+  uid: string;         // unique_id
+  tid: string;         // telemetry_id
+  sid: string;         // sensor_id
+  t: string;           // current_time
 }
 
 export interface BorewellSettingsType {
-  address: number;
-  offset: number;
-  reference_level: number;
-  reference_depth: number;
-  barometric_pressure: number;
-  reading_interval: number;
-  sending_interval: number;
-  well_id: string;
+  addr: number;        // address
+  off: number;         // offset
+  rlvl: number;        // reference_level
+  rdep: number;        // reference_depth
+  bp: number;          // barometric_pressure
+  ri: number;          // reading_interval (minutes)
+  si: number;          // sending_interval (minutes)
+  wid: string;         // well_id
 }
 
 export interface NetworkSettingsType {
-  apn: string;
-  mobile_number: string;
-  auto_mode: boolean;
-  force_4g_only: boolean;
-  data_logging_only: boolean;
-  enable_ipv6: boolean;
-  onomondo_sim: boolean;
+  apn: string;         // apn
+  mob: string;         // mobile_number
+  am: boolean;         // auto_mode
+  f4g: boolean;        // force_4g_only
+  dlo: boolean;        // data_logging_only
+  e6: boolean;         // enable_ipv6
+  os: boolean;         // onomondo_sim
 }
 
 export interface LiveDataType {
-  pressure_mH2O: number;
-  barometric_pressure_hPa: number;
-  temperature_C: number;
-  level_meters: number;
-  depth_meters: number;
-  current_time: string;
-  errors: string;
+  p_h2o: number;       // pressure_mH2O
+  bp_hpa: number;      // barometric_pressure_hPa
+  temp_c: number;      // temperature_C
+  lvl_m: number;       // level_meters
+  dep_m: number;       // depth_meters
+  t: string;           // current_time
+  err: string;         // errors
 }

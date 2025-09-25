@@ -6,13 +6,13 @@ import { LiveDataType } from '../../types';
 
 export function LiveData() {
   const [data, setData] = useState<LiveDataType>({
-    pressure_mH2O: 0,
-    barometric_pressure_hPa: 0,
-    temperature_C: 0,
-    level_meters: 0,
-    depth_meters: 0,
-    current_time: new Date().toISOString(),
-    errors: 'None'
+    p_h2o: 0,        // pressure_mH2O
+    bp_hpa: 0,       // barometric_pressure_hPa
+    temp_c: 0,       // temperature_C
+    lvl_m: 0,        // level_meters
+    dep_m: 0,        // depth_meters
+    t: new Date().toISOString(), // current_time
+    err: 'None'      // errors
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -57,7 +57,7 @@ export function LiveData() {
               bottom: 0,
               left: 0,
               right: 0,
-              height: `${((data?.level_meters || 0) / 150) * 100}%`,
+              height: `${((data?.lvl_m || 0) / 150) * 100}%`,
               background: 'linear-gradient(0deg, #228be6 0%, #74c0fc 100%)',
               transition: 'height 0.5s ease-in-out'
             }}
@@ -73,27 +73,27 @@ export function LiveData() {
               fontWeight: 700
             }}
           >
-            {(data?.level_meters || 0).toFixed(1)}m
+            {(data?.lvl_m || 0).toFixed(1)}m
           </Text>
         </div>
       </Paper>
 
       <Grid>
-        <DataItem label="Pressure" value={data.pressure_mH2O} unit="mH₂O" />
-        <DataItem label="Barometric Pressure" value={data.barometric_pressure_hPa} unit="hPa" />
-        <DataItem label="Temperature" value={data.temperature_C} unit="°C" />
-        <DataItem label="Depth" value={data.depth_meters} unit="m" />
+        <DataItem label="Pressure" value={data.p_h2o} unit="mH₂O" />
+        <DataItem label="Barometric Pressure" value={data.bp_hpa} unit="hPa" />
+        <DataItem label="Temperature" value={data.temp_c} unit="°C" />
+        <DataItem label="Depth" value={data.dep_m} unit="m" />
       </Grid>
 
       <Paper p="md" mt="md" withBorder>
         <Grid>
           <Grid.Col span={6}>
             <Text size="sm" color="dimmed">Last Update</Text>
-            <Text>{new Date(data.current_time).toLocaleString()}</Text>
+            <Text>{new Date(data.t).toLocaleString()}</Text>
           </Grid.Col>
           <Grid.Col span={6}>
             <Text size="sm" color="dimmed">Status</Text>
-            <Text color={data.errors === 'None' ? 'green' : 'red'}>{data.errors}</Text>
+            <Text color={data.err === 'None' ? 'green' : 'red'}>{data.err}</Text>
           </Grid.Col>
         </Grid>
       </Paper>

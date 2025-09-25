@@ -6,14 +6,14 @@ import { BorewellSettingsType } from '../../types';
 
 export function BorewellSettings() {
   const [data, setData] = useState<BorewellSettingsType>({
-    address: -1,
-    offset: 1.0,
-    reference_level: 0.0,
-    reference_depth: 0.0,
-    barometric_pressure: 938.42,
-    reading_interval: 360,
-    sending_interval: 1440,
-    well_id: ''
+    addr: -1,        // address
+    off: 1.0,        // offset
+    rlvl: 0.0,       // reference_level
+    rdep: 0.0,       // reference_depth
+    bp: 938.42,      // barometric_pressure
+    ri: 360,         // reading_interval (minutes)
+    si: 1440,        // sending_interval (minutes)
+    wid: ''          // well_id
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,14 +27,14 @@ export function BorewellSettings() {
         const newData = response.data as unknown as BorewellSettingsType;
         // Validate the received data
         if (typeof newData === 'object' && 
-            'address' in newData && 
-            'offset' in newData && 
-            'reference_level' in newData && 
-            'reference_depth' in newData && 
-            'barometric_pressure' in newData && 
-            'reading_interval' in newData && 
-            'sending_interval' in newData && 
-            'well_id' in newData) {
+            'addr' in newData && 
+            'off' in newData && 
+            'rlvl' in newData && 
+            'rdep' in newData && 
+            'bp' in newData && 
+            'ri' in newData && 
+            'si' in newData && 
+            'wid' in newData) {
           setData(newData);
         } else {
           console.error('Received invalid data format');
@@ -62,54 +62,54 @@ export function BorewellSettings() {
     <Paper p="md">
       <NumberInput
         label="Address"
-        value={data.address}
-        onChange={(value) => setData({ ...data, address: typeof value === 'number' ? value : 0 })}
+        value={data.addr}
+        onChange={(value) => setData({ ...data, addr: typeof value === 'number' ? value : 0 })}
         mb="sm"
       />
       <NumberInput
         label="Offset"
-        value={data.offset}
-        onChange={(value) => setData({ ...data, offset: typeof value === 'number' ? value : 0 })}
+        value={data.off}
+        onChange={(value) => setData({ ...data, off: typeof value === 'number' ? value : 0 })}
         step={0.001}
         mb="sm"
       />
       <NumberInput
-        label="Reference Level"
-        value={data.reference_level}
-        onChange={(value) => setData({ ...data, reference_level: typeof value === 'number' ? value : 0 })}
+        label="Reference Level (m)"
+        value={data.rlvl}
+        onChange={(value) => setData({ ...data, rlvl: typeof value === 'number' ? value : 0 })}
         step={0.01}
         mb="sm"
       />
       <NumberInput
-        label="Reference Depth"
-        value={data.reference_depth}
-        onChange={(value) => setData({ ...data, reference_depth: typeof value === 'number' ? value : 0 })}
+        label="Reference Depth (m)"
+        value={data.rdep}
+        onChange={(value) => setData({ ...data, rdep: typeof value === 'number' ? value : 0 })}
         step={0.01}
         mb="sm"
       />
       <NumberInput
-        label="Barometric Pressure"
-        value={data.barometric_pressure}
-        onChange={(value) => setData({ ...data, barometric_pressure: typeof value === 'number' ? value : 0 })}
+        label="Barometric Pressure (hPa)"
+        value={data.bp}
+        onChange={(value) => setData({ ...data, bp: typeof value === 'number' ? value : 0 })}
         step={0.01}
         mb="sm"
       />
       <NumberInput
-        label="Reading Interval"
-        value={data.reading_interval}
-        onChange={(value) => setData({ ...data, reading_interval: typeof value === 'number' ? value : 0 })}
+        label="Reading Interval (minutes)"
+        value={data.ri}
+        onChange={(value) => setData({ ...data, ri: typeof value === 'number' ? value : 0 })}
         mb="sm"
       />
       <NumberInput
-        label="Sending Interval"
-        value={data.sending_interval}
-        onChange={(value) => setData({ ...data, sending_interval: typeof value === 'number' ? value : 0 })}
+        label="Sending Interval (minutes)"
+        value={data.si}
+        onChange={(value) => setData({ ...data, si: typeof value === 'number' ? value : 0 })}
         mb="sm"
       />
       <TextInput
         label="Well ID"
-        value={data.well_id}
-        onChange={(e) => setData({ ...data, well_id: e.target.value })}
+        value={data.wid}
+        onChange={(e) => setData({ ...data, wid: e.target.value })}
         mb="sm"
       />
       

@@ -6,13 +6,13 @@ import { NetworkSettingsType } from '../../types';
 
 export function NetworkSettings() {
   const [data, setData] = useState<NetworkSettingsType>({
-    apn: '',
-    mobile_number: '',
-    auto_mode: true,
-    force_4g_only: false,
-    data_logging_only: false,
-    enable_ipv6: false,
-    onomondo_sim: false
+    apn: '',         // apn
+    mob: '',         // mobile_number
+    am: true,        // auto_mode
+    f4g: false,      // force_4g_only
+    dlo: false,      // data_logging_only
+    e6: false,       // enable_ipv6
+    os: false        // onomondo_sim
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,12 +27,12 @@ export function NetworkSettings() {
         // Validate the received data
         if (typeof newData === 'object' && 
             'apn' in newData && 
-            'mobile_number' in newData && 
-            'auto_mode' in newData && 
-            'force_4g_only' in newData && 
-            'data_logging_only' in newData && 
-            'enable_ipv6' in newData && 
-            'onomondo_sim' in newData) {
+            'mob' in newData && 
+            'am' in newData && 
+            'f4g' in newData && 
+            'dlo' in newData && 
+            'e6' in newData && 
+            'os' in newData) {
           setData(newData);
         } else {
           console.error('Received invalid data format');
@@ -66,33 +66,34 @@ export function NetworkSettings() {
         />
         <TextInput
           label="Mobile Number"
-          value={data.mobile_number}
-          onChange={(e) => setData({ ...data, mobile_number: e.target.value })}
+          value={data.mob}
+          onChange={(e) => setData({ ...data, mob: e.target.value })}
+          placeholder="+919876543210"
         />
         <Switch
           label="Auto Mode"
-          checked={data.auto_mode}
-          onChange={(e) => setData({ ...data, auto_mode: e.target.checked })}
+          checked={data.am}
+          onChange={(e) => setData({ ...data, am: e.target.checked })}
         />
         <Switch
           label="Force 4G Only"
-          checked={data.force_4g_only}
-          onChange={(e) => setData({ ...data, force_4g_only: e.target.checked })}
+          checked={data.f4g}
+          onChange={(e) => setData({ ...data, f4g: e.target.checked })}
         />
         <Switch
           label="Data Logging Only"
-          checked={data.data_logging_only}
-          onChange={(e) => setData({ ...data, data_logging_only: e.target.checked })}
+          checked={data.dlo}
+          onChange={(e) => setData({ ...data, dlo: e.target.checked })}
         />
         <Switch
           label="Enable IPv6"
-          checked={data.enable_ipv6}
-          onChange={(e) => setData({ ...data, enable_ipv6: e.target.checked })}
+          checked={data.e6}
+          onChange={(e) => setData({ ...data, e6: e.target.checked })}
         />
         <Switch
           label="Onomondo SIM"
-          checked={data.onomondo_sim}
-          onChange={(e) => setData({ ...data, onomondo_sim: e.target.checked })}
+          checked={data.os}
+          onChange={(e) => setData({ ...data, os: e.target.checked })}
         />
         
         <Group style={{ justifyContent: 'space-between', marginTop: '2rem' }}>

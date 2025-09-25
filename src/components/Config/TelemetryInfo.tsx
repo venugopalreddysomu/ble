@@ -6,11 +6,11 @@ import { TelemetryInfoType } from '../../types';
 
 export function TelemetryInfo() {
   const [data, setData] = useState<TelemetryInfoType>({
-    project: '',
-    unique_id: '',
-    telemetry_id: '',
-    sensor_id: '',
-    current_time: '',
+    p: '',           // project
+    uid: '',         // unique_id
+    tid: '',         // telemetry_id
+    sid: '',         // sensor_id
+    t: '',           // current_time
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,11 +24,11 @@ export function TelemetryInfo() {
         const newData = response.data as unknown as TelemetryInfoType;
         // Validate the received data
         if (typeof newData === 'object' && 
-            'project' in newData && 
-            'unique_id' in newData && 
-            'telemetry_id' in newData && 
-            'sensor_id' in newData && 
-            'current_time' in newData) {
+            'p' in newData && 
+            'uid' in newData && 
+            'tid' in newData && 
+            'sid' in newData && 
+            't' in newData) {
           setData(newData);
         } else {
           console.error('Received invalid data format');
@@ -56,27 +56,34 @@ export function TelemetryInfo() {
     <Paper p="md">
       <TextInput
         label="Project"
-        value={data.project}
-        onChange={(e) => setData({ ...data, project: e.target.value })}
+        value={data.p}
+        onChange={(e) => setData({ ...data, p: e.target.value })}
         mb="sm"
       />
       <TextInput
         label="Unique ID"
-        value={data.unique_id}
-        onChange={(e) => setData({ ...data, unique_id: e.target.value })}
+        value={data.uid}
+        onChange={(e) => setData({ ...data, uid: e.target.value })}
         mb="sm"
       />
       <TextInput
         label="Telemetry ID"
-        value={data.telemetry_id}
-        onChange={(e) => setData({ ...data, telemetry_id: e.target.value })}
+        value={data.tid}
+        onChange={(e) => setData({ ...data, tid: e.target.value })}
         mb="sm"
       />
       <TextInput
         label="Sensor ID"
-        value={data.sensor_id}
-        onChange={(e) => setData({ ...data, sensor_id: e.target.value })}
+        value={data.sid}
+        onChange={(e) => setData({ ...data, sid: e.target.value })}
         mb="sm"
+      />
+      <TextInput
+        label="Current Time"
+        value={data.t}
+        onChange={(e) => setData({ ...data, t: e.target.value })}
+        mb="sm"
+        placeholder="ISO 8601 format"
       />
       
       <Group style={{ justifyContent: 'space-between', marginTop: '2rem' }}>
