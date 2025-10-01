@@ -39,16 +39,23 @@ const useBluetoothService = () => {
 
       // Wait for response
       const result = await new Promise<BluetoothResponse<T>>((resolve) => {
+        let responseBuffer = '';
+        let hasValidJsonResponse = false;
+
         const handleResponse = (event: Event) => {
           const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
           if (!value) return;
 
           const decoder = new TextDecoder();
           const response = decoder.decode(value);
+          console.log('Received data:', response);
+          
+          // Accumulate response data
+          responseBuffer += response;
           
           try {
             // Handle different response formats
-            if (response.includes('OK')) {
+            if (response.includes('OK') && !hasValidJsonResponse) {
               characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
               resolve({
                 success: true,
@@ -58,42 +65,48 @@ const useBluetoothService = () => {
             }
             
             // Try to parse as JSON (for read commands)
-            const jsonMatch = response.match(/\{.*\}/);
+            const jsonMatch = responseBuffer.match(/\{[^}]*\}/);
             if (jsonMatch) {
-              characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
-              resolve({
-                success: true,
-                data: JSON.parse(jsonMatch[0])
-              });
-              return;
+              try {
+                const parsedData = JSON.parse(jsonMatch[0]);
+                // Validate it's a proper object with expected structure
+                if (typeof parsedData === 'object' && parsedData !== null) {
+                  hasValidJsonResponse = true;
+                  characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
+                  resolve({
+                    success: true,
+                    data: parsedData
+                  });
+                  return;
+                }
+              } catch (jsonError) {
+                // Invalid JSON, continue waiting for valid JSON
+                console.log('Invalid JSON detected, continuing to wait for valid response...');
+              }
             }
 
-            // Handle plain text responses
-            characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
-            resolve({
-              success: true,
-              data: response as T
-            });
+            // Ignore non-JSON responses (debug logs, status messages, etc.)
+            // These are just debug output from the device
+            
           } catch (error) {
-            console.error('Error parsing response:', error);
-            characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
-            resolve({
-              success: false,
-              error: 'Failed to parse response'
-            });
+            console.error('Error processing response:', error);
+            // Don't resolve with error immediately, continue waiting for valid JSON
           }
         };
 
         characteristic.addEventListener('characteristicvaluechanged', handleResponse);
         
-        // Set timeout for response
+        // Set timeout for response (10 seconds for live data, 5 seconds for others)
+        const timeoutDuration = prefix === CommandPrefix.GET_LIVE ? 10000 : 5000;
         setTimeout(() => {
           characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
-          resolve({
-            success: false,
-            error: 'Response timeout'
-          });
-        }, 5000);
+          if (!hasValidJsonResponse) {
+            resolve({
+              success: false,
+              error: `Response timeout after ${timeoutDuration/1000} seconds`
+            });
+          }
+        }, timeoutDuration);
       });
 
       return result;
