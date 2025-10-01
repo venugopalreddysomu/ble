@@ -75,7 +75,7 @@ export function LiveData() {
     <Box style={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
       {/* Water Level Visualization */}
       <Paper p="md" mb="md" withBorder>
-        <Text size="sm" color="dimmed" mb="xs" ta="center">Water Tank (100m total height)</Text>
+        <Text size="sm" color="dimmed" mb="xs" ta="center">Borewell (100m total height)</Text>
         <div style={{ height: 300, position: 'relative', background: '#f8f9fa', border: '2px solid #dee2e6' }}>
           {(() => {
             const tankHeight = 100; // Total tank height in meters
@@ -110,7 +110,7 @@ export function LiveData() {
                     textShadow: '0 0 4px rgba(255,255,255,0.8)'
                   }}
                 >
-                  {filledWater.toFixed(1)}m filled
+                  {filledWater.toFixed(1)}m filled from sensor tip
                 </Text>
                 {/* Surface Level Text */}
                 <Text 
@@ -125,7 +125,7 @@ export function LiveData() {
                     textShadow: '0 0 4px rgba(255,255,255,0.8)'
                   }}
                 >
-                  Water Surface: {waterSurfaceLevel.toFixed(1)}m from sensor
+                  Water Level: {waterSurfaceLevel.toFixed(1)}m from Earch
                 </Text>
               </>
             );
@@ -135,7 +135,7 @@ export function LiveData() {
 
       <Grid>
         <DataItem label="Pressure (piezo)" value={data.p_h2o} unit="mH₂O" />
-        <DataItem label="Barometric Pressure" value={data.bp_hpa*0.010197} unit="mH20 (Converted)" />
+        <DataItem label="Barometric Pressure" value={data.bp_hpa*0.010197} unit="mH₂O (Converted)" />
         <DataItem label="Temperature" value={data.temp_c} unit="°C" />
         <DataItem label="Depth" value={data.dep_m} unit="m" />
       </Grid>
