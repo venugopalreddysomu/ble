@@ -1,4 +1,4 @@
-import { IconSettings, IconTerminal, IconChartLine, IconDownload, IconClipboard } from '@tabler/icons-react';
+import { IconSettings, IconTerminal, IconChartLine, IconDownload, IconClipboard, IconHome } from '@tabler/icons-react';
 import { Group, UnstyledButton, Text, Box } from '@mantine/core';
 
 interface BottomNavProps {
@@ -8,10 +8,10 @@ interface BottomNavProps {
 
 export function BottomNav({ active, onChange }: BottomNavProps) {
   const items = [
+    { value: 'home', label: 'Home', icon: IconHome },
     { value: 'config', label: 'Config', icon: IconSettings },
     { value: 'terminal', label: 'Terminal', icon: IconTerminal },
     { value: 'live', label: 'LIVE', icon: IconChartLine },
-    { value: 'ota', label: 'OTA', icon: IconDownload },
     { value: 'reports', label: 'Reports', icon: IconClipboard },
   ];
 
@@ -25,6 +25,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
         backgroundColor: 'white',
         borderTop: '1px solid #e9ecef',
         padding: '0.5rem',
+        zIndex: 999,
       }}
     >
       <Group grow>

@@ -15,7 +15,7 @@ const useBluetoothService = () => {
 
   const sendCommand = async <T = any>(
     prefix: CommandPrefix, 
-    data?: object
+    data?: object | string
   ): Promise<BluetoothResponse<T>> => {
     if (!characteristic) {
       return {
@@ -26,9 +26,18 @@ const useBluetoothService = () => {
 
     try {
       setIsProcessing(true);
-      const command = data 
-        ? `${prefix} ${JSON.stringify(data)}\n`
-        : `${prefix}\n`;
+      
+      let command: string;
+      if (typeof data === 'string') {
+        // For simple string parameters (like devname or set_datetime)
+        command = `${prefix} ${data}\n`;
+      } else if (data && typeof data === 'object') {
+        // For JSON object data
+        command = `${prefix} ${JSON.stringify(data)}\n`;
+      } else {
+        // No data, just command
+        command = `${prefix}\n`;
+      }
       
       const encoder = new TextEncoder();
       const chunks = sliceStringIntoChunks(command, 20);

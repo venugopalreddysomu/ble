@@ -1,4 +1,4 @@
-import { TextInput, Switch, Button, Group, Paper, Stack } from '@mantine/core';
+import { TextInput, Switch, Button, Group, Paper, Stack, NumberInput } from '@mantine/core';
 import { useState } from 'react';
 import useBluetoothService from '../../hooks/useBluetoothService';
 import { CommandPrefix } from '../../utils/bluetoothCommands';
@@ -6,13 +6,12 @@ import { NetworkSettingsType } from '../../types';
 
 export function NetworkSettings() {
   const [data, setData] = useState<NetworkSettingsType>({
-    apn: '',         // apn
-    mob: '',         // mobile_number
-    am: true,        // auto_mode
-    f4g: false,      // force_4g_only
-    dlo: false,      // data_logging_only
-    e6: false,       // enable_ipv6
-    os: false        // onomondo_sim
+    apn: 'internet',  // apn
+    am: true,         // auto_mode
+    f4g: false,       // force_4g_only
+    dlo: false,       // data_logging_only
+    e6: false,        // enable_ipv6
+    msig: 10          // minimum_signal_level
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -21,22 +20,9 @@ export function NetworkSettings() {
   const handleGetData = async () => {
     try {
       setIsLoading(true);
-      const response = await sendCommand(CommandPrefix.GET_NETWORK);
-      if (response && response.data) {
-        const newData = response.data as unknown as NetworkSettingsType;
-        // Validate the received data
-        if (typeof newData === 'object' && 
-            'apn' in newData && 
-            'mob' in newData && 
-            'am' in newData && 
-            'f4g' in newData && 
-            'dlo' in newData && 
-            'e6' in newData && 
-            'os' in newData) {
-          setData(newData);
-        } else {
-          console.error('Received invalid data format');
-        }
+      const response = await sendCommand<NetworkSettingsType>(CommandPrefix.GET_NETWORK);
+      if (response && response.success && response.data) {
+        setData(response.data);
       }
     } catch (error) {
       console.error('Error fetching network data:', error);
@@ -61,39 +47,42 @@ export function NetworkSettings() {
       <Stack>
         <TextInput
           label="APN"
+          description="Access Point Name for cellular data connection"
           value={data.apn}
           onChange={(e) => setData({ ...data, apn: e.target.value })}
+          placeholder="e.g., internet, airtelgprs.com"
         />
-        <TextInput
-          label="Mobile Number"
-          value={data.mob}
-          onChange={(e) => setData({ ...data, mob: e.target.value })}
-          placeholder="+919876543210"
+        <NumberInput
+          label="Minimum Signal Level"
+          description="Minimum signal strength required for data transmission"
+          value={data.msig}
+          onChange={(value) => setData({ ...data, msig: typeof value === 'number' ? value : 10 })}
+          min={0}
+          max={31}
         />
         <Switch
           label="Auto Mode"
+          description="Enable automatic network mode selection"
           checked={data.am}
           onChange={(e) => setData({ ...data, am: e.target.checked })}
         />
         <Switch
           label="Force 4G Only"
+          description="Force device to use 4G/LTE network only"
           checked={data.f4g}
           onChange={(e) => setData({ ...data, f4g: e.target.checked })}
         />
         <Switch
           label="Data Logging Only"
+          description="Store data locally without transmitting"
           checked={data.dlo}
           onChange={(e) => setData({ ...data, dlo: e.target.checked })}
         />
         <Switch
           label="Enable IPv6"
+          description="Enable IPv6 protocol support"
           checked={data.e6}
           onChange={(e) => setData({ ...data, e6: e.target.checked })}
-        />
-        <Switch
-          label="Onomondo SIM"
-          checked={data.os}
-          onChange={(e) => setData({ ...data, os: e.target.checked })}
         />
         
         <Group style={{ justifyContent: 'space-between', marginTop: '2rem' }}>

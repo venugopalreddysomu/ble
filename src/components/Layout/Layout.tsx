@@ -7,9 +7,10 @@ import { ConfigTabs } from '../Config/ConfigTabs';
 import Terminal from '../Terminal/Terminal';
 import { LiveData } from '../Live/LiveData';
 import { DisconnectedView } from '../Overlays/DisconnectedView';
+import { DeviceInfo } from '../DeviceInfo/DeviceInfo';
 
 const Layout: FC = () => {
-  const [activeSection, setActiveSection] = useState('terminal');
+  const [activeSection, setActiveSection] = useState('home');
   const { isConnected } = useBluetooth();
 
   const renderContent = () => {
@@ -18,6 +19,8 @@ const Layout: FC = () => {
     }
 
     switch (activeSection) {
+      case 'home':
+        return <DeviceInfo />;
       case 'config':
         return <ConfigTabs />;
       case 'terminal':
@@ -29,7 +32,7 @@ const Layout: FC = () => {
       case 'reports':
         return <div>Reports Section - Coming Soon</div>;
       default:
-        return <Terminal />;
+        return <DeviceInfo />;
     }
   };
 

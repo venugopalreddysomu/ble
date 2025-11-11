@@ -1,8 +1,9 @@
-import { Paper, Text, Grid, Button, Box } from '@mantine/core';
+import { Paper, Text, Grid, Button, Box, Badge, Group } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import useBluetoothService from '../../hooks/useBluetoothService';
 import { CommandPrefix } from '../../utils/bluetoothCommands';
 import { LiveDataType } from '../../types';
+import { decodeErrorCode, getErrorColor } from '../../utils/errorDecoder';
 
 export function LiveData() {
   const [data, setData] = useState<LiveDataType>({
@@ -12,7 +13,7 @@ export function LiveData() {
     lvl_m: 0,        // level_meters
     dep_m: 0,        // depth_meters
     t: new Date().toISOString(), // current_time
-    err: 'None'      // errors
+    err: 0           // error code
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,7 +37,7 @@ export function LiveData() {
             lvl_m: typeof receivedData.lvl_m === 'number' ? receivedData.lvl_m : 0,
             dep_m: typeof receivedData.dep_m === 'number' ? receivedData.dep_m : 0,
             t: receivedData.t || new Date().toISOString(),
-            err: receivedData.err || 'Unknown'
+            err: receivedData.err !== undefined ? receivedData.err : 0
           };
           setData(validatedData);
         } else {
@@ -147,8 +148,21 @@ export function LiveData() {
             <Text>{data.t ? new Date(data.t).toLocaleString() : 'No data'}</Text>
           </Grid.Col>
           <Grid.Col span={6}>
-            <Text size="sm" color="dimmed">Status</Text>
-            <Text color={data.err === 'None' ? 'green' : 'red'}>{data.err}</Text>
+            <Text size="sm" color="dimmed" mb="xs">Status</Text>
+            {(() => {
+              const errorMessages = decodeErrorCode(data.err);
+              const errorColor = getErrorColor(data.err);
+              
+              return (
+                <Group gap="xs">
+                  {errorMessages.map((msg, idx) => (
+                    <Badge key={idx} color={errorColor} variant="filled">
+                      {msg}
+                    </Badge>
+                  ))}
+                </Group>
+              );
+            })()}
           </Grid.Col>
         </Grid>
       </Paper>
