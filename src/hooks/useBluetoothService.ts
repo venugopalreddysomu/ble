@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { notifications } from '@mantine/notifications';
 import useBluetooth from './useBluetooth';
 import { CommandPrefix } from '../utils/bluetoothCommands';
 import sliceStringIntoChunks from '../utils/sliceStringIntoChunks';
@@ -110,6 +111,14 @@ const useBluetoothService = () => {
         setTimeout(() => {
           characteristic.removeEventListener('characteristicvaluechanged', handleResponse);
           if (!hasValidJsonResponse) {
+            // Show user-friendly warning notification
+            notifications.show({
+              title: 'No Response from Device',
+              message: 'Device might be busy with another operation. Please wait for a minute and try again.',
+              color: 'yellow',
+              autoClose: 8000,
+            });
+            
             resolve({
               success: false,
               error: `Response timeout after ${timeoutDuration/1000} seconds`

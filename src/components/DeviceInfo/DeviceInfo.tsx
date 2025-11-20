@@ -1,9 +1,10 @@
 import { Paper, Text, Grid, Badge, Group, Box, Title, ActionIcon, Modal, TextInput, Button } from '@mantine/core';
 import { useState, useEffect } from 'react';
-import { IconEdit, IconRefresh } from '@tabler/icons-react';
+import { IconEdit, IconRefresh, IconClock, IconReload } from '@tabler/icons-react';
 import useBluetoothService from '../../hooks/useBluetoothService';
 import { CommandPrefix } from '../../utils/bluetoothCommands';
 import { DeviceInfoType } from '../../types';
+import useBluetooth from '../../hooks/useBluetooth';
 
 export function DeviceInfo() {
   const [data, setData] = useState<DeviceInfoType>({
@@ -22,6 +23,7 @@ export function DeviceInfo() {
   const [newDeviceName, setNewDeviceName] = useState('');
 
   const { sendCommand } = useBluetoothService();
+  const { characteristic } = useBluetooth();
 
   const handleGetDeviceInfo = async () => {
     try {
@@ -47,6 +49,38 @@ export function DeviceInfo() {
       setTimeout(() => handleGetDeviceInfo(), 500);
     } catch (error) {
       console.error('Error setting device name:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSetTime = async () => {
+    if (!characteristic) return;
+    try {
+      setIsLoading(true);
+      // Get the standard Unix timestamp (seconds since epoch)
+      const currentTimestamp = Math.floor(new Date().getTime() / 1000);
+      // Define the IST offset in seconds (5 hours * 3600) + (30 minutes * 60)
+      const istOffsetInSeconds = 19800;
+      // Create the new timestamp with the offset added for your device
+      const adjustedTimestamp = currentTimestamp + istOffsetInSeconds;
+      await sendCommand(CommandPrefix.SET_DATETIME, adjustedTimestamp.toString());
+      // Refresh device info after setting time
+      setTimeout(() => handleGetDeviceInfo(), 1000);
+    } catch (error) {
+      console.error('Error setting time:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRestart = async () => {
+    if (!characteristic) return;
+    try {
+      setIsLoading(true);
+      await sendCommand(CommandPrefix.RESTART);
+    } catch (error) {
+      console.error('Error restarting device:', error);
     } finally {
       setIsLoading(false);
     }
@@ -140,6 +174,30 @@ export function DeviceInfo() {
             </Paper>
           </Grid.Col>
         </Grid>
+
+        {/* Action Buttons */}
+        <Group mt="lg" justify="center" gap="md">
+          <Button 
+            leftSection={<IconClock size={18} />}
+            variant="filled"
+            color="blue"
+            onClick={handleSetTime}
+            loading={isLoading}
+            disabled={isLoading}
+          >
+            Set Time
+          </Button>
+          <Button 
+            leftSection={<IconReload size={18} />}
+            variant="filled"
+            color="orange"
+            onClick={handleRestart}
+            loading={isLoading}
+            disabled={isLoading}
+          >
+            Restart Device
+          </Button>
+        </Group>
       </Paper>
 
       {/* Edit Device Name Modal */}

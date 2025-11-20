@@ -1,15 +1,19 @@
 import { NumberInput, TextInput, Button, Group, Paper } from '@mantine/core';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useBluetoothService from '../../hooks/useBluetoothService';
 import { CommandPrefix } from '../../utils/bluetoothCommands';
 import { BorewellSettingsType } from '../../types';
 
-export function BorewellSettings() {
+interface BorewellSettingsProps {
+  isActive: boolean;
+}
+
+export function BorewellSettings({ isActive }: BorewellSettingsProps) {
   const [data, setData] = useState<BorewellSettingsType>({
-    off: 1,          // reference_offset
+    off: 0,          // reference_offset
     rlvl: 0,         // reference_level
     rdep: 0,         // reference_depth
-    mbp: 1013.25,    // manual_barometric_pressure
+    mbp: 0,          // manual_barometric_pressure
     bid: ''          // borewell_id
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +44,13 @@ export function BorewellSettings() {
       setIsLoading(false);
     }
   };
+
+  // Auto-load data when component mounts
+  useEffect(() => {
+    if (isActive) {
+      handleGetData();
+    }
+  }, [isActive]);
 
   return (
     <Paper p="md">

@@ -31,6 +31,8 @@ export interface AdvancedSettingsType {
   pname: string;       // project_name
   alarms: string;      // alarm times (comma-separated)
   mhost: string;       // MQTT host
+  mqttu: string;       // MQTT username
+  mqttp: string;       // MQTT password
 }
 
 export interface LiveDataType {

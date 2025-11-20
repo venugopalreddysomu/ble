@@ -1,17 +1,21 @@
 import { TextInput, Switch, Button, Group, Paper, Stack, NumberInput } from '@mantine/core';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useBluetoothService from '../../hooks/useBluetoothService';
 import { CommandPrefix } from '../../utils/bluetoothCommands';
 import { NetworkSettingsType } from '../../types';
 
-export function NetworkSettings() {
+interface NetworkSettingsProps {
+  isActive: boolean;
+}
+
+export function NetworkSettings({ isActive }: NetworkSettingsProps) {
   const [data, setData] = useState<NetworkSettingsType>({
-    apn: 'internet',  // apn
-    am: true,         // auto_mode
+    apn: '',          // apn
+    am: false,        // auto_mode
     f4g: false,       // force_4g_only
     dlo: false,       // data_logging_only
     e6: false,        // enable_ipv6
-    msig: 10          // minimum_signal_level
+    msig: 0           // minimum_signal_level
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,6 +45,13 @@ export function NetworkSettings() {
       setIsLoading(false);
     }
   };
+
+  // Auto-load data when component mounts
+  useEffect(() => {
+    if (isActive) {
+      handleGetData();
+    }
+  }, [isActive]);
 
   return (
     <Paper p="md">

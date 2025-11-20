@@ -1,4 +1,4 @@
-import { Paper, Text, Grid, Button, Box, Badge, Group } from '@mantine/core';
+import { Paper, Text, Grid, Button, Box, Badge, Group, Modal } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import useBluetoothService from '../../hooks/useBluetoothService';
 import { CommandPrefix } from '../../utils/bluetoothCommands';
@@ -16,8 +16,36 @@ export function LiveData() {
     err: 0           // error code
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  const [showCalibrateModal, setShowCalibrateModal] = useState(false);
 
   const { sendCommand } = useBluetoothService();
+
+  const handleCalibrate = async () => {
+    setShowCalibrateModal(false);
+    
+    try {
+      setIsCalibrating(true);
+      
+      // Calculate offset: barometric_pressure_converted / piezo_pressure
+      const barometricConverted = data.bp_hpa * 0.010197;
+      const offset = barometricConverted / data.p_h2o;
+      
+      if (!isFinite(offset) || data.p_h2o === 0) {
+        console.error('Invalid calibration values. Piezo pressure cannot be zero.');
+        return;
+      }
+      
+      // Send the offset to the device
+      await sendCommand(CommandPrefix.SET_BOREWELL, { off: offset });
+      
+      console.log('Calibration successful. Offset:', offset);
+    } catch (error) {
+      console.error('Error during calibration:', error);
+    } finally {
+      setIsCalibrating(false);
+    }
+  };
 
   const handleReadLive = async () => {
     try {
@@ -58,7 +86,7 @@ export function LiveData() {
     handleReadLive();
   }, []);
 
-  const DataItem = ({ label, value, unit }: { label: string; value: number; unit: string }) => {
+  const DataItem = ({ label, value, unit, decimals = 2 }: { label: string; value: number; unit: string; decimals?: number }) => {
     // Ensure value is a valid number
     const safeValue = typeof value === 'number' && !isNaN(value) ? value : 0;
     
@@ -66,7 +94,7 @@ export function LiveData() {
       <Grid.Col span={6}>
         <Paper p="md" withBorder>
           <Text size="sm" color="dimmed">{label}</Text>
-          <Text size="xl" style={{ fontWeight: 700 }}>{safeValue.toFixed(2)} {unit}</Text>
+          <Text size="xl" style={{ fontWeight: 700 }}>{safeValue.toFixed(decimals)} {unit}</Text>
         </Paper>
       </Grid.Col>
     );
@@ -76,13 +104,20 @@ export function LiveData() {
     <Box style={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
       {/* Water Level Visualization */}
       <Paper p="md" mb="md" withBorder>
-        <Text size="sm" color="dimmed" mb="xs" ta="center">Borewell (100m total height)</Text>
+        {(() => {
+          const waterSurfaceLevel = typeof data?.lvl_m === 'number' && !isNaN(data.lvl_m) ? data.lvl_m : 0;
+          const depth = typeof data?.dep_m === 'number' && !isNaN(data.dep_m) ? data.dep_m : 0;
+          const tankHeight = waterSurfaceLevel + depth; // Total tank height = water level + depth
+          
+          return <Text size="sm" color="dimmed" mb="xs" ta="center">Borewell ({tankHeight.toFixed(2)}m installed height)</Text>;
+        })()}
         <div style={{ height: 300, position: 'relative', background: '#f8f9fa', border: '2px solid #dee2e6' }}>
           {(() => {
-            const tankHeight = 100; // Total tank height in meters
             const waterSurfaceLevel = typeof data?.lvl_m === 'number' && !isNaN(data.lvl_m) ? data.lvl_m : 0;
+            const depth = typeof data?.dep_m === 'number' && !isNaN(data.dep_m) ? data.dep_m : 0;
+            const tankHeight = waterSurfaceLevel + depth; // Total tank height = water level + depth
             const filledWater = Math.max(0, tankHeight - waterSurfaceLevel); // Water from bottom
-            const fillPercentage = Math.max(0, Math.min(100, (filledWater / tankHeight) * 100));
+            const fillPercentage = tankHeight > 0 ? Math.max(0, Math.min(100, (filledWater / tankHeight) * 100)) : 0;
             
             return (
               <>
@@ -111,7 +146,7 @@ export function LiveData() {
                     textShadow: '0 0 4px rgba(255,255,255,0.8)'
                   }}
                 >
-                  {filledWater.toFixed(1)}m filled from sensor tip
+                  {filledWater.toFixed(4)}m filled from sensor tip
                 </Text>
                 {/* Surface Level Text */}
                 <Text 
@@ -126,7 +161,7 @@ export function LiveData() {
                     textShadow: '0 0 4px rgba(255,255,255,0.8)'
                   }}
                 >
-                  Water Level: {waterSurfaceLevel.toFixed(1)}m from Earch
+                  Water Level: {waterSurfaceLevel.toFixed(4)}m from Earch
                 </Text>
               </>
             );
@@ -138,8 +173,21 @@ export function LiveData() {
         <DataItem label="Pressure (piezo)" value={data.p_h2o} unit="mH₂O" />
         <DataItem label="Barometric Pressure" value={data.bp_hpa*0.010197} unit="mH₂O (Converted)" />
         <DataItem label="Temperature" value={data.temp_c} unit="°C" />
-        <DataItem label="Depth" value={data.dep_m} unit="m" />
+        <DataItem label="Depth" value={data.dep_m} unit="m" decimals={4} />
       </Grid>
+
+      <Paper p="md" mt="md" withBorder>
+        <Grid>
+          <Grid.Col span={12}>
+            <Text size="sm" color="dimmed" mb="xs">Water Level (From Earth Surface)</Text>
+            <Paper p="md" withBorder style={{ backgroundColor: '#f8f9fa' }}>
+              <Text size="xl" fw={700} ta="center">
+                {(typeof data.lvl_m === 'number' && !isNaN(data.lvl_m) ? data.lvl_m : 0).toFixed(4)} m
+              </Text>
+            </Paper>
+          </Grid.Col>
+        </Grid>
+      </Paper>
 
       <Paper p="md" mt="md" withBorder>
         <Grid>
@@ -177,6 +225,57 @@ export function LiveData() {
       >
         {isLoading ? 'Refreshing...' : 'Refresh Data'}
       </Button>
+
+      <Paper p="md" mt="md" withBorder style={{ backgroundColor: '#fff3cd' }}>
+        <Text size="sm" fw={600} mb="xs" c="orange">⚠️ Sensor Calibration</Text>
+        <Text size="xs" mb="sm" c="dimmed">
+          <strong>Warning:</strong> Only click the calibrate button when the sensor is completely out of water.
+          This will calculate and set the reference offset based on current pressure readings.
+        </Text>
+        <Button 
+          fullWidth
+          size="md"
+          color="orange"
+          onClick={() => setShowCalibrateModal(true)}
+          loading={isCalibrating}
+          disabled={isCalibrating || isLoading || data.p_h2o === 0}
+        >
+          {isCalibrating ? 'Calibrating...' : 'Calibrate Sensor'}
+        </Button>
+      </Paper>
+
+      {/* Calibration Confirmation Modal */}
+      <Modal
+        opened={showCalibrateModal}
+        onClose={() => setShowCalibrateModal(false)}
+        title="⚠️ Calibration Warning"
+        centered
+      >
+        <Text size="sm" mb="md">
+          <strong>Are you sure you want to calibrate the sensor?</strong>
+        </Text>
+        <Text size="sm" mb="md" c="dimmed">
+          This action will:
+          <ul style={{ marginTop: '8px', paddingLeft: '20px' }}>
+            <li>Calculate a new reference offset value</li>
+            <li>Override the current offset setting</li>
+          </ul>
+        </Text>
+        <Text size="sm" mb="lg" fw={600} c="orange">
+          ⚠️ Ensure the sensor is completely out of water before proceeding!
+        </Text>
+        <Group justify="flex-end">
+          <Button variant="light" onClick={() => setShowCalibrateModal(false)}>
+            Cancel
+          </Button>
+          <Button 
+            color="orange"
+            onClick={handleCalibrate}
+          >
+            Yes, Calibrate Now
+          </Button>
+        </Group>
+      </Modal>
     </Box>
   );
 }

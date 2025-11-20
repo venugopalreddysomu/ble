@@ -97,18 +97,6 @@ const Terminal: FC<TerminalProps> = () => {
     setCommand('');
   };
 
-  const sendSetTimeCommand = async () => {
-    // Get the standard Unix timestamp (seconds since epoch)
-    const currentTimestamp = Math.floor(new Date().getTime() / 1000);
-    // Define the IST offset in seconds (5 hours * 3600) + (30 minutes * 60)
-    const istOffsetInSeconds = 19800;
-    // Create the new timestamp with the offset added for your device
-    const adjustedTimestamp = currentTimestamp + istOffsetInSeconds;
-    // Construct the command string with the new adjusted timestamp
-    const setTimeCommand = `set_datetime ${adjustedTimestamp}`;
-    await sendCommand(setTimeCommand);
-  };
-
   useEffect(() => {
     if (viewportRef.current) {
       viewportRef.current.scrollTo({ top: viewportRef.current.scrollHeight, behavior: 'smooth' });
@@ -122,11 +110,11 @@ const Terminal: FC<TerminalProps> = () => {
   }, [characteristic]);
 
   return (
-    <Box p="md" style={{ height: 'calc(100vh - 140px)' }}>
-      <Paper shadow="xs" radius="sm" withBorder style={{ height: '100%' }}>
-        <Stack h="100%" gap={0}>
+    <Box p="md">
+      <Paper shadow="xs" radius="sm" withBorder>
+        <Stack gap={0}>
           {/* Terminal Output Area */}
-          <Box style={{ flex: 1, position: 'relative' }}>
+          <Box style={{ position: 'relative', height: '400px' }}>
             <ScrollArea 
               h="100%"
               offsetScrollbars
@@ -148,7 +136,8 @@ const Terminal: FC<TerminalProps> = () => {
                 gap: '8px',
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 padding: '4px',
-                borderRadius: '4px'
+                borderRadius: '4px',
+                zIndex: 100
               }}
             >
               <Switch
@@ -209,14 +198,6 @@ const Terminal: FC<TerminalProps> = () => {
                 </Button>
                 <Button size="xs" variant="light" onClick={() => sendCommand('readLiveData')}>
                   Live Data
-                </Button>
-                <Button size="xs" variant="light" onClick={sendSetTimeCommand}>
-                  Set Time
-                </Button>
-              </Group>
-              <Group gap="xs" justify="flex-start" mt="xs">
-                <Button size="xs" variant="light" onClick={() => sendCommand('restart')}>
-                  Restart
                 </Button>
                 <Button size="xs" variant="light" onClick={() => sendCommand('getbat')}>
                   Battery
