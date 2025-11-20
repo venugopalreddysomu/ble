@@ -1,5 +1,6 @@
 import { Paper, Text, Grid, Button, Box, Badge, Group, Modal } from '@mantine/core';
 import { useState, useEffect } from 'react';
+import { notifications } from '@mantine/notifications';
 import useBluetoothService from '../../hooks/useBluetoothService';
 import { CommandPrefix } from '../../utils/bluetoothCommands';
 import { LiveDataType } from '../../types';
@@ -33,15 +34,38 @@ export function LiveData() {
       
       if (!isFinite(offset) || data.p_h2o === 0) {
         console.error('Invalid calibration values. Piezo pressure cannot be zero.');
+        notifications.show({
+          title: 'Calibration Failed',
+          message: 'Invalid pressure readings. Ensure sensor is out of water and readings are valid.',
+          color: 'red',
+        });
         return;
       }
       
       // Send the offset to the device
-      await sendCommand(CommandPrefix.SET_BOREWELL, { off: offset });
+      const response = await sendCommand(CommandPrefix.SET_BOREWELL, { off: offset });
       
-      console.log('Calibration successful. Offset:', offset);
+      if (response.success) {
+        console.log('Calibration successful. Offset:', offset);
+        notifications.show({
+          title: 'Calibration Successful',
+          message: `Reference offset set to ${offset.toFixed(4)}`,
+          color: 'green',
+        });
+      } else {
+        notifications.show({
+          title: 'Calibration Failed',
+          message: 'Failed to send calibration data to device.',
+          color: 'red',
+        });
+      }
     } catch (error) {
       console.error('Error during calibration:', error);
+      notifications.show({
+        title: 'Calibration Error',
+        message: 'An error occurred during calibration.',
+        color: 'red',
+      });
     } finally {
       setIsCalibrating(false);
     }
