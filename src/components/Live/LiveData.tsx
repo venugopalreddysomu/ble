@@ -185,7 +185,7 @@ export function LiveData() {
                     textShadow: '0 0 4px rgba(255,255,255,0.8)'
                   }}
                 >
-                  Water Level: {waterSurfaceLevel.toFixed(4)}m from Earch
+                  Water Level: {waterSurfaceLevel.toFixed(4)}m from Earth
                 </Text>
               </>
             );
